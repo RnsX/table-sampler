@@ -40,7 +40,7 @@ function parseCsv(input) {
         throw new Error(`Unexpected quote at character ${index + 1}`);
       }
       inQuotes = true;
-    } else if (character === ",") {
+    } else if (character === ";") {
       row.push(field);
       field = "";
     } else if (character === "\n") {
@@ -146,10 +146,6 @@ function createPaymentXml(values) {
 </Document>`;
 }
 
-function encodeCsvField(value) {
-  return `"${value.replaceAll('"', '""')}"`;
-}
-
 function convert(input) {
   const rows = parseCsv(input.replace(/^\uFEFF/, ""));
 
@@ -176,7 +172,7 @@ function convert(input) {
     throw new Error(`Missing required CSV columns: ${missingColumns.join(", ")}`);
   }
 
-  const outputRows = ["PaymentXmlBase64"];
+  const outputRows = [];
   for (let rowIndex = 1; rowIndex < rows.length; rowIndex += 1) {
     const row = rows[rowIndex];
     if (row.length !== headers.length) {
@@ -189,7 +185,7 @@ function convert(input) {
       headers.map((header, columnIndex) => [header, row[columnIndex]]),
     );
     const base64 = Buffer.from(createPaymentXml(values), "utf8").toString("base64");
-    outputRows.push(encodeCsvField(base64));
+    outputRows.push(base64);
   }
 
   return `${outputRows.join("\n")}\n`;
